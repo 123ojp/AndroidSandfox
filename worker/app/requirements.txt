@@ -1,0 +1,4 @@
+androguard
+requests
+docker
+frida==15.1.27

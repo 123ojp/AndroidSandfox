@@ -1,0 +1,63 @@
+version: "2"
+services:
+    backend:
+        build: ./backend
+        ports:
+            - "50010:8000"
+        volumes:
+            - ./backend/app:/app
+            - ./backend/uploads:/uploads
+        restart: always
+        env_file:
+            - .env
+        depends_on:
+            - db
+    frontend:
+        build: ./frontend
+        ports:
+            - "8081:80"
+        restart: always
+        env_file:
+            - .env
+        depends_on:
+            - backend
+    db:
+        image: postgres
+        env_file:
+            - .env
+        restart: always
+        #volumes:
+        #  - ./data/db:/var/lib/postgresql/data
+    worker1:
+        build: ./worker
+        env_file:
+            - .env
+            - .env.worker
+        volumes:
+            - ./worker/app:/app:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /tmp/abox:/tmp/abox
+        depends_on:
+            - backend  
+        restart: always
+    worker2:
+        build: ./worker
+        env_file:
+            - .env
+            - .env.worker
+        volumes:
+            - ./worker/app:/app:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /tmp/abox:/tmp/abox
+        depends_on:
+            - backend  
+        restart: always
+volumes:
+    persistent:
+networks:
+    default:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet:  172.4.4.0/24
